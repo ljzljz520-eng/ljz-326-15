@@ -112,12 +112,33 @@ export const leaderboardApi = {
 };
 
 // Announcements API
+export type AnnouncementPosition = 'home' | 'banner' | 'page';
+
+export interface AnnouncementPayload {
+  title: string;
+  content: string;
+  type?: 'info' | 'warning' | 'success' | 'error';
+  isActive?: boolean;
+  isPinned?: boolean;
+  publishAt?: string | null;
+  endAt?: string | null;
+  positions?: AnnouncementPosition[];
+}
+
 export const announcementApi = {
-  getAll: (all?: boolean) => request.get<any[]>(`/announcements${all ? '?all=true' : ''}`),
-  getLatest: (limit?: number) => request.get<any[]>(`/announcements/latest${limit ? `?limit=${limit}` : ''}`),
+  // 玩家端：已发布公告，可按展示位置过滤
+  getAll: (position?: AnnouncementPosition) =>
+    request.get<any[]>(`/announcements${position ? `?position=${position}` : ''}`),
+  getLatest: (limit?: number, position?: AnnouncementPosition) =>
+    request.get<any[]>(
+      `/announcements/latest?limit=${limit ?? 3}${position ? `&position=${position}` : ''}`,
+    ),
   getOne: (id: number) => request.get<any>(`/announcements/${id}`),
-  create: (data: any) => request.post('/announcements', data),
-  update: (id: number, data: any) => request.patch(`/announcements/${id}`, data),
+  // 管理端：含草稿/定时未发布（后端校验管理员身份）
+  getAllForAdmin: () => request.get<any[]>('/announcements/admin/all'),
+  create: (data: AnnouncementPayload) => request.post('/announcements', data),
+  update: (id: number, data: Partial<AnnouncementPayload>) =>
+    request.patch(`/announcements/${id}`, data),
   delete: (id: number) => request.delete(`/announcements/${id}`),
 };
 

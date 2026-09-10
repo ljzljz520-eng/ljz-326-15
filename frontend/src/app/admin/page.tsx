@@ -3,13 +3,14 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { 
-  Users, Newspaper, HelpCircle, Bell, Gamepad2, 
-  Server, Plus, Trash2, Edit, Eye, EyeOff 
+import {
+  Users, Newspaper, HelpCircle, Bell, Gamepad2,
+  Trash2,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useAuthStore } from '@/store/authStore';
-import { userApi, newsApi, qaApi, announcementApi, gameplayApi } from '@/lib/api';
+import { userApi, newsApi, qaApi, gameplayApi } from '@/lib/api';
+import AnnouncementManager from '@/components/admin/AnnouncementManager';
 import GlassCard from '@/components/GlassCard';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import ConfirmModal from '@/components/ConfirmModal';
@@ -34,6 +35,12 @@ export default function AdminPage() {
   }, [isAuthenticated, user, activeTab]);
 
   const fetchData = async () => {
+    // 公告标签页由 AnnouncementManager 自行管理数据与加载状态
+    if (activeTab === 'announcements') {
+      setData([]);
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     try {
       let result: any;
@@ -46,9 +53,6 @@ export default function AdminPage() {
           break;
         case 'qa':
           result = await qaApi.getAll(true);
-          break;
-        case 'announcements':
-          result = await announcementApi.getAll(true);
           break;
         case 'gameplay':
           result = await gameplayApi.getAll(true);
@@ -78,9 +82,6 @@ export default function AdminPage() {
           break;
         case 'qa':
           await qaApi.delete(deleteTargetId);
-          break;
-        case 'announcements':
-          await announcementApi.delete(deleteTargetId);
           break;
         case 'gameplay':
           await gameplayApi.delete(deleteTargetId);
@@ -235,34 +236,8 @@ export default function AdminPage() {
                   </div>
                 )}
 
-                {/* 公告列表 */}
-                {activeTab === 'announcements' && (
-                  <div className="space-y-4">
-                    {data.map((item: any) => (
-                      <div key={item.id} className="flex items-center justify-between p-4 bg-black/20 rounded-lg">
-                        <div className="flex-grow">
-                          <h4 className="text-white font-medium">{item.title}</h4>
-                          <span className={`inline-block mt-1 px-2 py-0.5 rounded text-xs ${
-                            item.type === 'warning' ? 'bg-yellow-500/20 text-yellow-400' :
-                            item.type === 'error' ? 'bg-red-500/20 text-red-400' :
-                            item.type === 'success' ? 'bg-green-500/20 text-green-400' :
-                            'bg-blue-500/20 text-blue-400'
-                          }`}>
-                            {item.type}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-2 ml-4">
-                          <button
-                            onClick={() => handleDeleteClick(item.id)}
-                            className="p-2 text-red-400 hover:bg-red-500/20 rounded transition-colors"
-                          >
-                            <Trash2 size={16} />
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
+                {/* 公告管理（发布/编辑/删除） */}
+                {activeTab === 'announcements' && <AnnouncementManager />}
 
                 {/* 玩法列表 */}
                 {activeTab === 'gameplay' && (
@@ -291,7 +266,7 @@ export default function AdminPage() {
                   </div>
                 )}
 
-                {data.length === 0 && (
+                {data.length === 0 && activeTab !== 'announcements' && (
                   <div className="text-center py-20 text-gray-400">
                     暂无数据
                   </div>

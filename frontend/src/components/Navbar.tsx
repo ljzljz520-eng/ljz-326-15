@@ -12,6 +12,7 @@ const navLinks = [
   { href: '/', label: '首页' },
   { href: '/server-info', label: '服务器介绍' },
   { href: '/gameplay', label: '玩法内容' },
+  { href: '/announcements', label: '公告' },
   { href: '/qa', label: '常见问题' },
 ];
 

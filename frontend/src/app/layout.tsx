@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Toaster } from 'react-hot-toast';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import AnnouncementBanner from '@/components/AnnouncementBanner';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -20,6 +21,9 @@ export default function RootLayout({
       <body className="min-h-screen bg-minecraft-gradient">
         <Navbar />
         <main className="pt-16 min-h-screen">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
+            <AnnouncementBanner />
+          </div>
           {children}
         </main>
         <Footer />

@@ -90,12 +90,14 @@ CREATE TABLE IF NOT EXISTS announcements (
   type ENUM('info', 'warning', 'success', 'error') DEFAULT 'info',
   isActive BOOLEAN DEFAULT TRUE,
   isPinned BOOLEAN DEFAULT FALSE,
-  startAt DATETIME,
-  endAt DATETIME,
+  publishAt DATETIME NULL COMMENT '发布时间，支持定时发布',
+  positions VARCHAR(100) DEFAULT 'home' COMMENT '展示位置，逗号分隔：home/banner/page',
+  endAt DATETIME NULL COMMENT '下架时间',
   createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
   updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   INDEX idx_active (isActive),
-  INDEX idx_pinned (isPinned)
+  INDEX idx_pinned (isPinned),
+  INDEX idx_publish (publishAt)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- 玩法表
@@ -150,10 +152,10 @@ INSERT INTO server_status (isOnline, onlinePlayers, maxPlayers, serverIp, server
 (TRUE, 42, 100, 'mc.example.com', 25565, '1.20.4', '欢迎来到Minecraft梦想世界！', 19.8, 864000);
 
 -- 插入公告
-INSERT INTO announcements (title, content, type, isActive, isPinned) VALUES
-('欢迎来到Minecraft服务器', '欢迎各位玩家加入我们的服务器！在这里你可以体验原版生存、创造建筑、参与活动等丰富内容。祝你游戏愉快！', 'success', TRUE, TRUE),
-('服务器规则提醒', '请所有玩家遵守服务器规则，文明游戏。发现违规行为请向管理员举报。', 'warning', TRUE, FALSE),
-('周末双倍经验活动', '本周末全服双倍经验！活动时间：周六00:00 - 周日23:59。快来升级你的技能吧！', 'info', TRUE, FALSE);
+INSERT INTO announcements (title, content, type, isActive, isPinned, publishAt, positions) VALUES
+('欢迎来到Minecraft服务器', '欢迎各位玩家加入我们的服务器！在这里你可以体验原版生存、创造建筑、参与活动等丰富内容。祝你游戏愉快！', 'success', TRUE, TRUE, NOW(), 'home,banner,page'),
+('服务器规则提醒', '请所有玩家遵守服务器规则，文明游戏。发现违规行为请向管理员举报。', 'warning', TRUE, FALSE, NOW(), 'home,page'),
+('周末双倍经验活动', '本周末全服双倍经验！活动时间：周六00:00 - 周日23:59。快来升级你的技能吧！', 'info', TRUE, FALSE, NOW(), 'page');
 
 -- 插入玩法
 INSERT INTO gameplay (title, description, detailedContent, gameMode, sortOrder, isActive, isFeatured) VALUES

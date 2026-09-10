@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { ArrowRight, Users, Trophy, Newspaper, Gamepad2 } from 'lucide-react';
+import { ArrowRight, Users, Trophy, Newspaper, Gamepad2, Pin } from 'lucide-react';
 import ServerStatus from '@/components/ServerStatus';
 import GlassCard from '@/components/GlassCard';
 import { newsApi, announcementApi, leaderboardApi } from '@/lib/api';
@@ -23,7 +23,7 @@ export default function HomePage() {
     try {
       const [newsData, announcementData, leaderboardData] = await Promise.all([
         newsApi.getLatest(3).catch(() => []),
-        announcementApi.getLatest(3).catch(() => []),
+        announcementApi.getLatest(3, 'home').catch(() => []),
         leaderboardApi.getPlaytime(5).catch(() => []),
       ]);
       setNews(newsData || []);
@@ -135,25 +135,39 @@ export default function HomePage() {
           <div className="lg:col-span-2 space-y-8">
             {/* 公告 */}
             <GlassCard className="p-6" hover={false}>
-              <h3 className="text-lg font-bold text-white flex items-center gap-2 mb-4">
-                <Newspaper className="w-5 h-5 text-minecraft-green" />
-                最新公告
-              </h3>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                  <Newspaper className="w-5 h-5 text-minecraft-green" />
+                  最新公告
+                </h3>
+                <Link href="/announcements" className="text-minecraft-green hover:underline text-sm">
+                  查看全部
+                </Link>
+              </div>
               <div className="space-y-3">
                 {announcements.length > 0 ? (
                   announcements.map((announcement: any) => (
-                    <div
+                    <Link
+                      href="/announcements"
                       key={announcement.id}
-                      className={`p-4 rounded-lg border-l-4 ${
+                      className={`block p-4 rounded-lg border-l-4 transition-transform hover:translate-x-1 ${
                         announcement.type === 'warning' ? 'bg-yellow-500/10 border-yellow-500' :
                         announcement.type === 'error' ? 'bg-red-500/10 border-red-500' :
                         announcement.type === 'success' ? 'bg-green-500/10 border-green-500' :
                         'bg-blue-500/10 border-blue-500'
                       }`}
                     >
-                      <h4 className="text-white font-medium mb-1">{announcement.title}</h4>
+                      <div className="flex items-center gap-2 mb-1">
+                        {announcement.isPinned && (
+                          <Pin size={13} className="text-yellow-400 flex-shrink-0" />
+                        )}
+                        <h4 className="text-white font-medium">{announcement.title}</h4>
+                      </div>
                       <p className="text-gray-400 text-sm line-clamp-2">{announcement.content}</p>
-                    </div>
+                      <p className="text-gray-600 text-xs mt-2">
+                        {formatDate(announcement.publishAt || announcement.createdAt)}
+                      </p>
+                    </Link>
                   ))
                 ) : (
                   <p className="text-gray-400 text-center py-4">暂无公告</p>

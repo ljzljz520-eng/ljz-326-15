@@ -60,7 +60,8 @@ export default function AnnouncementBanner() {
 
   const fetchAnnouncements = async () => {
     try {
-      const data = await announcementApi.getLatest(5);
+      // 只拉取标记为“顶部横幅”展示位置的已发布公告
+      const data = await announcementApi.getLatest(5, 'banner');
       setAnnouncements(data || []);
     } catch (error) {
       console.error('Failed to fetch announcements');

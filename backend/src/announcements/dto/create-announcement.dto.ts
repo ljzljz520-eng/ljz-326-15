@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsString, IsOptional, IsBoolean, IsEnum, IsDateString, MaxLength } from 'class-validator';
-import { AnnouncementType } from '../entities/announcement.entity';
+import { IsNotEmpty, IsString, IsOptional, IsBoolean, IsEnum, IsDateString, MaxLength, IsArray, ArrayUnique, ArrayMinSize } from 'class-validator';
+import { AnnouncementType, AnnouncementPosition } from '../entities/announcement.entity';
 
 export class CreateAnnouncementDto {
   @ApiProperty({ description: '标题' })
@@ -9,8 +9,8 @@ export class CreateAnnouncementDto {
   @MaxLength(200)
   title: string;
 
-  @ApiProperty({ description: '内容' })
-  @IsNotEmpty({ message: '内容不能为空' })
+  @ApiProperty({ description: '正文' })
+  @IsNotEmpty({ message: '正文不能为空' })
   @IsString()
   content: string;
 
@@ -29,12 +29,26 @@ export class CreateAnnouncementDto {
   @IsBoolean()
   isPinned?: boolean;
 
-  @ApiProperty({ description: '开始时间', required: false })
+  @ApiProperty({ description: '发布时间（ISO 字符串，不传则立即发布）', required: false })
   @IsOptional()
-  @IsDateString()
-  startAt?: string;
+  @IsDateString({}, { message: '发布时间格式不正确' })
+  publishAt?: string;
 
-  @ApiProperty({ description: '结束时间', required: false })
+  @ApiProperty({
+    description: '展示位置：home=首页公告区, banner=顶部横幅, page=公告历史页',
+    enum: AnnouncementPosition,
+    isArray: true,
+    required: false,
+    example: ['home', 'page'],
+  })
+  @IsOptional()
+  @IsArray()
+  @ArrayMinSize(1, { message: '至少选择一个展示位置' })
+  @ArrayUnique()
+  @IsEnum(AnnouncementPosition, { each: true, message: '展示位置不合法' })
+  positions?: AnnouncementPosition[];
+
+  @ApiProperty({ description: '下架时间', required: false })
   @IsOptional()
   @IsDateString()
   endAt?: string;
