@@ -13,6 +13,7 @@ import {
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { AnnouncementsService } from './announcements.service';
 import { CreateAnnouncementDto } from './dto/create-announcement.dto';
+import { UpdateAnnouncementDto } from './dto/update-announcement.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -43,12 +44,12 @@ export class AnnouncementsController {
   }
 
   @Get()
-  @ApiOperation({ summary: '获取已发布公告列表（玩家可见，可按展示位置过滤）' })
+  @ApiOperation({ summary: '获取已发布公告列表（玩家可见；传 position 按展示位置过滤，不传则返回全部）' })
   findAll(@Query('position') position?: string) {
     const pos =
       position && Object.values(AnnouncementPosition).includes(position as AnnouncementPosition)
         ? (position as AnnouncementPosition)
-        : AnnouncementPosition.PAGE;
+        : undefined;
     return this.announcementsService.findPublic(pos);
   }
 
@@ -85,7 +86,7 @@ export class AnnouncementsController {
   @Roles(UserRole.ADMIN)
   @ApiBearerAuth()
   @ApiOperation({ summary: '更新公告（仅管理员）' })
-  update(@Param('id') id: string, @Body() updateAnnouncementDto: Partial<CreateAnnouncementDto>) {
+  update(@Param('id') id: string, @Body() updateAnnouncementDto: UpdateAnnouncementDto) {
     return this.announcementsService.update(+id, updateAnnouncementDto);
   }
 

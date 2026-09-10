@@ -39,8 +39,8 @@ export default function AnnouncementsPage() {
   useEffect(() => {
     (async () => {
       try {
-        // 只取选择了“公告历史页”展示位置的已发布公告
-        const data = await announcementApi.getAll('page');
+        // 历史页展示全部已发布公告（不限展示位置，含仅 home/banner 的公告）
+        const data = await announcementApi.getAll();
         setList(data || []);
       } catch {
         setList([]);

@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Announcement, AnnouncementPosition } from './entities/announcement.entity';
 import { CreateAnnouncementDto } from './dto/create-announcement.dto';
+import { UpdateAnnouncementDto } from './dto/update-announcement.dto';
 
 @Injectable()
 export class AnnouncementsService {
@@ -23,18 +24,20 @@ export class AnnouncementsService {
    * 1. isActive 为真
    * 2. publishAt 已到（为空视为立即发布）
    * 3. 未到 endAt
-   * 4. positions 包含指定展示位置
+   * 4. 指定了展示位置时，positions 需包含该位置；不传则不过滤（用于公告历史页展示全部）
    */
-  private applyPublicConditions(qb: ReturnType<Repository<Announcement>['createQueryBuilder']>, now: Date, position: AnnouncementPosition) {
-    return qb
-      .where('announcement.isActive = :isActive', { isActive: true })
+  private applyPublicConditions(qb: ReturnType<Repository<Announcement>['createQueryBuilder']>, now: Date, position?: AnnouncementPosition) {
+    qb.where('announcement.isActive = :isActive', { isActive: true })
       .andWhere('(announcement.publishAt IS NULL OR announcement.publishAt <= :now)', { now })
-      .andWhere('(announcement.endAt IS NULL OR announcement.endAt >= :now)', { now })
+      .andWhere('(announcement.endAt IS NULL OR announcement.endAt >= :now)', { now });
+    if (position) {
       // positions 为逗号分隔字符串，使用 FIND_IN_SET 匹配
-      .andWhere('FIND_IN_SET(:position, announcement.positions)', { position });
+      qb.andWhere('FIND_IN_SET(:position, announcement.positions)', { position });
+    }
+    return qb;
   }
 
-  async findPublic(position: AnnouncementPosition = AnnouncementPosition.PAGE): Promise<Announcement[]> {
+  async findPublic(position?: AnnouncementPosition): Promise<Announcement[]> {
     const now = new Date();
     return this.applyPublicConditions(
       this.announcementRepository.createQueryBuilder('announcement'),
@@ -63,7 +66,7 @@ export class AnnouncementsService {
     return this.announcementRepository.save(announcement);
   }
 
-  async update(id: number, dto: Partial<CreateAnnouncementDto>): Promise<Announcement> {
+  async update(id: number, dto: UpdateAnnouncementDto): Promise<Announcement> {
     const announcement = await this.findOne(id);
     const { positions, ...rest } = dto;
     Object.assign(announcement, rest);
